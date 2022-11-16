@@ -14,22 +14,18 @@ def calculate_fitness(population, song_notes):
     for chromosome in population:
         chromosome.rating = chromosome.size
         for i in range(chromosome.size):
-            if has_in_consonant_chords(
-                    chromosome.genes_pool[i]):
+            if has_chord_in_consonant_chords(chromosome.genes[i]):
                 chromosome.rating -= 0.5
                 if song_notes[i] is None:
                     chromosome.rating -= 0.5
                     continue
-                if (not has_note_in_consonant_chords(song_notes[i]) or
-                        chromosome.genes_pool[
-                            i].has_note(
-                            song_notes[i])):
+                if not has_note_in_consonant_chords(song_notes[i]) or chromosome.genes[i].has_note(song_notes[i]):
                     chromosome.rating -= 0.5
 
 
-def has_in_consonant_chords(chord):
-    for existing_chord in globals.CONSONANT_CHORDS:
-        if existing_chord == chord:
+def has_chord_in_consonant_chords(chord):
+    for consonant_chord in globals.CONSONANT_CHORDS:
+        if consonant_chord == chord:
             return True
     return False
 
@@ -37,74 +33,64 @@ def has_in_consonant_chords(chord):
 def has_note_in_consonant_chords(note):
     if note is None:
         return False
-    for existing_chord in globals.CONSONANT_CHORDS:
-        if existing_chord.has_note(note % 12):
+    for consonant_chord in globals.CONSONANT_CHORDS:
+        if consonant_chord.has_note(note % 12):
             return True
     return False
 
 
-def select(population, survivors):
-    size = len(survivors)
-    for i in range(size):
-        survivors[i] = population[i]
-
-
-def get_parents(parents, other_parent_index):
+def get_parents(parents):
     size = len(parents)
-    while True:
-        index = random.randint(0, size - 1)
-        if other_parent_index is None or other_parent_index != index:
-            return index
+    first_parent, second_parent = random.randint(0, size - 1), random.randint(0, size - 1)  # fixme
+    while second_parent == first_parent:
+        second_parent = random.randint(0, size - 1)
+    return first_parent, second_parent
 
 
-def cross(chromosome1, chromosome2):
-    size = chromosome1.size
-    point = random.randint(0, size - 1)
+def cross(first_parent, second_parent):
+    size = first_parent.size
+    first_point, second_point = random.randint(0, size // 2 - 1), random.randint(size // 2, size)
     child = Chromosome(size)
-    for i in range(point):
-        child.genes_pool[i] = chromosome1.genes_pool[i]
-    for i in range(point, size):
-        child.genes_pool[i] = chromosome2.genes_pool[i]
+    child.genes = first_parent.genes[:first_point] + second_parent.genes[first_point:second_point] + first_parent.genes[
+                                                                                                     second_point:]
     return child
 
 
-def repopulate(population, parents, children_count):
-    population_size = len(population)
-    while children_count < population_size:
-        p1_pos = get_parents(parents, None)
-        p2_pos = get_parents(parents, p1_pos)
-        population[children_count] = cross(parents[p1_pos], parents[p2_pos])
-        population[children_count + 1] = cross(parents[p2_pos], parents[p1_pos])
-        children_count += 2
+def mutate(population, times_to_mutate, genes_to_mutate):
+    for i in range(times_to_mutate):
+        chromosome_to_mutate = population[random.randint(0, len(population) - 1)]
+        for j in range(genes_to_mutate):
+            gene_to_mutate = random.randint(0, chromosome_to_mutate.size - 1)
+            random_chord = Chord(random.randint(0, globals.MAX_NOTE), random.choice(globals.CHORDS_LIST))
+            chromosome_to_mutate.genes[gene_to_mutate] = random_chord
 
 
-def mutate(population, chromosome_count, gene_count):
-    pop_size = len(population)
-    for i in range(chromosome_count):
-        chromosome_pos = random.randint(0, pop_size - 1)
-        chromosome = population[chromosome_pos]
-        for j in range(gene_count):
-            rand_note = random.randint(0, globals.MAX_NOTE)
-            rand_chord = Chord(rand_note, random.choice(globals.CHORDS_LIST))
-            gene_pos = random.randint(0, chromosome.size - 1)
-            chromosome.genes_pool[gene_pos] = rand_chord
+def improve_population(population, parents, index):
+    while index < len(population):
+        first_parent, second_parent = get_parents(parents)
+
+        population[index], population[index + 1] = cross(parents[first_parent], parents[second_parent]), cross(
+            parents[second_parent], parents[first_parent])
+        index += 2
 
 
-def evolution(population_size, song_notes):
-    survivors = [None] * (population_size // 4)
+def evolution_step(population, population_size):
+    offsprings_size = population_size // 4
+    offsprings = [None] * offsprings_size
+    for i in range(offsprings_size):
+        offsprings[i] = population[i]
+    improve_population(population, offsprings, population_size // 2)
+    mutate(population, population_size // 2, 1)
+
+
+def evolution(population_size, song_notes, max_generation_number=5000):
     population = initial_population(population_size, len(song_notes))
-    iteration_count = 0
-    max_iteration_count = 5000
 
-    while True:
-        iteration_count += 1
+    for generation in range(max_generation_number):
         calculate_fitness(population, song_notes)
         population = sorted(population)
-        if population[0].rating == 0 or iteration_count > max_iteration_count:
+        if population[0].rating == 0:
             break
-        select(population, survivors)
-        size = len(population)
-        repopulate(population, survivors, population_size // 2)
-        mutate(population, size // 2, 1)
+        evolution_step(population, population_size)
 
-    return population[0].genes_pool
+    return population[0].genes

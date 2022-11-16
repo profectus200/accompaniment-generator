@@ -5,9 +5,10 @@ from chord import Chord
 
 
 class Chromosome(object):
+
     def __init__(self, size):
         self.size = size
-        self.genes_pool = [None] * size
+        self.genes = [None] * size
         self.rating = 0
         self.generate_random_genes()
 
@@ -15,7 +16,7 @@ class Chromosome(object):
         for i in range(self.size):
             rand_note = random.randint(0, globals.MAX_NOTE)
             rand_chord = Chord(rand_note, random.choice(globals.CHORDS_LIST))
-            self.genes_pool[i] = rand_chord
+            self.genes[i] = rand_chord
 
     def __eq__(self, other):
         return self.rating == other.rating
