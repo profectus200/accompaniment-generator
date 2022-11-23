@@ -7,36 +7,35 @@ import globals
 from chord import Chord
 
 
-def identify_music_scale():
+def get_tonic():
     """
-    Identifies music scale of the song.
+    Identifies tonic of the song.
 
-    :return: scale of the song
+    :return: tonic of the song
     """
-    score = music21.converter.parse(globals.INPUT_FILE_NAME)
-    key = score.analyze('key')
+    key = music21.converter.parse(globals.INPUT_FILE_NAME).analyze('key')
 
-    if key.mode == "minor":
-        scale = (key.tonic.midi + 3) % 12
+    if key.mode == "major":
+        tonic = key.tonic.midi % 12
     else:
-        scale = key.tonic.midi % 12
-    return scale
+        tonic = (key.tonic.midi + 3) % 12
+    return tonic
 
 
 def get_tempo(midi_file):
     """
-    Computes tempo for the given song.
+    Identifies song_tempo for the given song.
 
-    :param midi_file: song to compute tempo
-    :return: tempo of the song
+    :param midi_file: song to compute song_tempo
+    :return: song_tempo of the song
     """
-    tempo = 0
+    song_tempo = 0
 
     for track in midi_file.tracks:
         for message in track:
-            if isinstance(message, MetaMessage) and message.type == "set_tempo":
-                tempo = message.tempo
-    return tempo
+            if type(message) is MetaMessage  and message.type == "set_tempo":
+                song_tempo = message.tempo
+    return song_tempo
 
 
 def get_notes_amount(track):
@@ -46,16 +45,16 @@ def get_notes_amount(track):
     :param track: track to compute number of notes
     :return: number of notes in the track
     """
-    beats = 0
+    total_time = 0
 
     for message in track:
         if type(message) is Message:
-            beats += message.time
+            total_time += message.time
 
-    return (beats + globals.DURATION - 1) // globals.DURATION
+    return (total_time + globals.DURATION - 1) // globals.DURATION
 
 
-def identify_notes(track):
+def get_notes(track):
     """
     Identifies notes in the given track.
 
@@ -63,20 +62,20 @@ def identify_notes(track):
     :return: list of the identified notes
     """
     notes_list = [None] * get_notes_amount(track)
-    beats, last_note = 0, 0
+    total_time, final_note = 0, 0
 
     for message in track:
         if type(message) is Message:
             if message.type == "note_off":
-                last_note = message.note
+                final_note = message.note
 
-            if beats % globals.DURATION == 0 and message.type == "note_on":
-                if notes_list[beats // globals.DURATION] is None:
-                    notes_list[beats // globals.DURATION] = message.note
+            if total_time % globals.DURATION == 0 and message.type == "note_on":
+                if notes_list[total_time // globals.DURATION] is None:
+                    notes_list[total_time // globals.DURATION] = message.note
 
-            beats += message.time
-    if beats % globals.DURATION == 0:
-        notes_list[-1] = last_note
+            total_time += message.time
+    if total_time % globals.DURATION == 0:
+        notes_list[-1] = final_note
     return notes_list
 
 
@@ -96,28 +95,28 @@ def compute_consonant_chords(scale):
                                 Chord((scale + 11) % 12, globals.DIM_CHORD)]
 
 
-def get_average_velocity(midi_file):
+def get_velocity(midi_file):
     """
-    Computes the averages velocity for the given song.
+    Computes the velocity for the given song.
 
     :param midi_file: the given song
-    :return: average velocity of the given song
+    :return: velocity of the given song
     """
     note_number, velocity = 0, 0
 
     for message in midi_file.tracks[1]:
-        if isinstance(message, Message) and message.type == 'note_on':
+        if type(message) is Message and message.type == 'note_on':
             note_number += 1
             velocity += message.velocity
     return int(velocity / note_number * 0.9)
 
 
-def get_average_displacement(midi_file):
+def get_offset(midi_file):
     """
-    Computes the averages velocity for the given song.
+    Computes the offset for the given song.
 
     :param midi_file: the given song
-    :return: average displacement of the given song
+    :return: offset of the given song
     """
     note_number, octave = 0, 0
 
@@ -137,18 +136,17 @@ def write_output_chords(midi_file, tracks, output_chords):
     :param output_chords: computed chords to add
     :return: None
     """
-    velocity = get_average_velocity(midi_file)
-    displacement = get_average_displacement(midi_file)
+    velocity, offset = get_velocity(midi_file), get_offset(midi_file)
 
     for chord in output_chords:
         for i in range(3):
             tracks.append(
-                Message('note_on', channel=0, note=chord.note_list[i] + displacement, velocity=velocity, time=0))
-        tracks.append(Message('note_off', channel=0, note=chord.note_list[0] + displacement, velocity=velocity,
+                Message('note_on', channel=0, note=chord.note_list[i] + offset, velocity=velocity, time=0))
+        tracks.append(Message('note_off', channel=0, note=chord.note_list[0] + offset, velocity=velocity,
                               time=globals.DURATION))
         for i in range(1, 3):
             tracks.append(
-                Message('note_off', channel=0, note=chord.note_list[i] + displacement, velocity=velocity, time=0))
+                Message('note_off', channel=0, note=chord.note_list[i] + offset, velocity=velocity, time=0))
 
     midi_file.tracks.append(tracks)
     midi_file.save(globals.OUTPUT_FILE_NAME)

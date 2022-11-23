@@ -26,14 +26,14 @@ class Chromosome(object):
         self.rating = 0
         self.generate_random_genes()
 
-    def generate_random_genes(self):
+    def generate_random_genes(self, max_note=120):
         """
         Generates random genes for the chromosome.
 
         :return: None
         """
         for i in range(self.size):
-            rand_note = random.randint(0, globals.MAX_NOTE)
+            rand_note = random.randint(0, max_note)
             rand_chord = Chord(rand_note, random.choice(globals.CHORDS_LIST))
             self.genes[i] = rand_chord
 

@@ -15,7 +15,7 @@ def initial_population(population_size, chromosome_size):
     :param chromosome_size: the size of the chromosome
     :return: created population
     """
-    population = [Chromosome(chromosome_size) for _ in range(population_size)]  # fixme fitness sort
+    population = [Chromosome(chromosome_size) for _ in range(population_size)]
     return population
 
 
@@ -35,7 +35,7 @@ def calculate_fitness(population, song_notes):
                 if song_notes[i] is None:
                     chromosome.rating -= 0.5
                     continue
-                if chromosome.genes[i].has_note(song_notes[i]) or not is_note_in_consonants(song_notes[i]):
+                if chromosome.genes[i].is_note_in_chord(song_notes[i]) or not is_note_in_consonants(song_notes[i]):
                     chromosome.rating -= 0.5
 
 
@@ -66,7 +66,7 @@ def is_note_in_consonants(note):
         return False
     else:
         for consonant_chord in globals.CONSONANT_CHORDS:
-            if consonant_chord.has_note(note % 12):
+            if consonant_chord.is_note_in_chord(note % 12):
                 return True
     return False
 
@@ -79,7 +79,7 @@ def get_parents(parents):
     :return: two chosen parents
     """
     size = len(parents)
-    first_parent, second_parent = random.randint(0, size - 1), random.randint(0, size - 1)  # fixme
+    first_parent, second_parent = random.randint(0, size - 1), random.randint(0, size - 1)
     while second_parent == first_parent:
         second_parent = random.randint(0, size - 1)
     return first_parent, second_parent
@@ -101,20 +101,21 @@ def cross(first_parent, second_parent):
     return child
 
 
-def mutate(population, times_to_mutate, genes_to_mutate):
+def mutate(population, times_to_mutate, genes_to_mutate, max_note=120):
     """
-    Mutates some genes in population using random point mutation.
+    Mutates some genes in some chromosomes in population using random point mutation.
 
     :param population: the population to mutate
     :param times_to_mutate: number of chromosomes to mutate
     :param genes_to_mutate: number of genes in chromosome to mutate
+    :param max_note: the maximum note for random generation
     :return: None
     """
     for i in range(times_to_mutate):
         chromosome_to_mutate = population[random.randint(0, len(population) - 1)]
         for j in range(genes_to_mutate):
             gene_to_mutate = random.randint(0, chromosome_to_mutate.size - 1)
-            random_chord = Chord(random.randint(0, globals.MAX_NOTE), random.choice(globals.CHORDS_LIST))
+            random_chord = Chord(random.randint(0, max_note), random.choice(globals.CHORDS_LIST))
             chromosome_to_mutate.genes[gene_to_mutate] = random_chord
 
 
