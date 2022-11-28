@@ -23,23 +23,23 @@ def initial_population(population_size, chromosome_size, song_notes):
 
 def calculate_fitness(population, song_notes):
     """
-    Calculates fitness function for the elements of population in order to find the most fitting accompaniment chords.
+    Calculates fitness for the elements of population in order to find the most fitting accompaniment chords.
 
     :param population: the given population
     :param song_notes: the given song
-    :return:
+    :return: None
     """
     for chromosome in population:
-        new_rating = 0
+        new_fitness = 0
         for i in range(chromosome.size):
-            if is_chord_in_consonants(chromosome.genes[i]):
-                new_rating += 1
-            if song_notes[i] is None:
-                new_rating += 1
-                continue
-            if chromosome.genes[i].is_note_in_chord(song_notes[i]):
-                new_rating += 1
-        chromosome.fitness = new_rating
+            if is_chord_in_consonants(chromosome.genes[i]):  # fitness increases if the current chord is consonant
+                new_fitness += 1
+            if song_notes[i] is None:  # fitness increases if there is a pause in the song
+                new_fitness += 1
+            if song_notes[i] is not None and chromosome.genes[i].is_note_in_chord(
+                    song_notes[i]):  # fitness increases if the current chord contains the current note from the song
+                new_fitness += 1
+        chromosome.fitness = new_fitness
 
 
 def is_chord_in_consonants(chord):
@@ -60,9 +60,9 @@ def is_chord_in_consonants(chord):
 
 def get_parents(parents):
     """
-    Chooses random parents from .
+    Chooses two random elements from the list of parents.
 
-    :param parents: parent to choose
+    :param parents: parents to choose
     :return: two chosen parents
     """
     size = len(parents)

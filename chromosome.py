@@ -10,9 +10,9 @@ class Chromosome(object):
     """
     Represents a chromosome in the genetic algorithm.
 
-    :argument size: the size of the chromosome
-    :argument genes: the genes in the chromosome
-    :argument fitness: the fitness of the chromosome
+    :attribute size: the size of the chromosome
+    :attribute genes: the genes in the chromosome
+    :attribute fitness: the fitness of the chromosome
     """
 
     def __init__(self, size, max_note=120):
@@ -20,6 +20,7 @@ class Chromosome(object):
         Standard constructor.
 
         :param size: size of the chromosome
+        :param max_note: maximum note value to generate
         """
         self.fitness = 0
         self.size = size
@@ -27,16 +28,16 @@ class Chromosome(object):
 
     def __lt__(self, other):
         """
-        Checks if current chromosome lesser then another one.
+        Checks if the current chromosome is less then another one.
 
         :param other: other chromosome to compare
-        :return: true if current chromosome lesser then another one and false otherwise
+        :return: true if the current chromosome is less then another one and false otherwise
         """
         return self.fitness < other.fitness
 
     def __eq__(self, other):
         """
-        Checks weather two chromosomes are equal.
+        Checks whether two chromosomes are equal.
 
         :param other: other chromosome to compare
         :return: true if two chromosomes are equal and false otherwise

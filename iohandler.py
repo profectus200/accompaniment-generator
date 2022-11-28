@@ -8,6 +8,12 @@ from chord import Chord
 
 
 def get_input_files():
+    """
+    Gets input files names from the input.
+
+    :return: input files names
+    """
+    mode = 2
     while True:
         try:
             mode = int(input("\nIf you want to enter specific file names enter '1'\n"
@@ -21,7 +27,7 @@ def get_input_files():
 
     input_files = ['input/input1.mid', 'input/input2.mid', 'input/input3.mid']
     if mode == 1:
-        input_files = []
+        input_files, n = [], 0
         while True:
             try:
                 n = int(input("\nEnter the positive number of files for the accompaniment selection: "))
@@ -68,10 +74,10 @@ def get_key(input_file):
 
 def get_tempo(midi_file):
     """
-    Identifies song_tempo for the given song.
+    Identifies tempo for the given song.
 
-    :param midi_file: song to compute song_tempo
-    :return: song_tempo of the song
+    :param midi_file: song to compute tempo
+    :return: tempo of the song
     """
     song_tempo = 0
 
@@ -104,7 +110,7 @@ def get_notes(track):
     :param track: track to compute identify notes
     :return: list of the identified notes
     """
-    notes_list = [None] * get_notes_amount(track)
+    notes_list = [None for _ in range(get_notes_amount(track))]
     total_time, final_note = 0, 0
 
     for message in filter(lambda x: type(x) is Message, track):
@@ -123,7 +129,7 @@ def get_notes(track):
 
 def compute_consonant_chords(tonic):
     """
-    Computes consonant chords for the given tonic in major key using the circle of fifth.
+    Computes consonant chords for the given tonic in major key using the music formulas.
 
     :param tonic: the given tonic
     :return: None

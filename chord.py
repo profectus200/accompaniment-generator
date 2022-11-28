@@ -5,8 +5,8 @@ class Chord(object):
     """
     Represents a chord.
 
-    :argument base_note: root note of the chord
-    :argument notes: notes in the chord
+    :attribute base_note: root note of the chord
+    :attribute notes: notes in the chord
     """
 
     def __init__(self, base_note, triad):

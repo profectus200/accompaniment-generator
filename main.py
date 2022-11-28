@@ -9,6 +9,11 @@ from iohandler import get_notes, write_output_chords, get_tempo, get_tonic, comp
 
 
 def compute_accompaniment():
+    """
+    Identifies and adds accompaniment to the given song.
+
+    :return: None
+    """
     input_files = get_input_files()
     for i in range(len(input_files)):
         input_file = input_files[i]
@@ -25,5 +30,6 @@ def compute_accompaniment():
         output_chords = evolution(song_notes)
 
         write_output_chords(midi_file, tracks, output_chords, input_file, i)
+
 
 compute_accompaniment()
