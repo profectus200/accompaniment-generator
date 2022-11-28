@@ -6,17 +6,18 @@ class Chord(object):
     Represents a chord.
 
     :argument base_note: root note of the chord
-    :argument note_list: notes in the chord
+    :argument notes: notes in the chord
     """
 
-    def __init__(self, base_note, chord_type):
+    def __init__(self, base_note, triad):
         """
         Standard constructor.
 
         :param base_note: root note of the chord
+        :param triad: triad of notes which form a chord of the special type
         """
         self.base_note = base_note
-        self.note_list = [(base_note + note) % 12 for note in chord_type]
+        self.notes = [(base_note + note) % 12 for note in triad]
 
     def is_note_in_chord(self, note):
         """
@@ -25,7 +26,7 @@ class Chord(object):
         :param note: the given note.
         :return: true if the chord has the given note and false otherwise
         """
-        if note is not None and note % 12 in self.note_list:
+        if note is not None and note % 12 in self.notes:
             return True
         return False
 
@@ -36,4 +37,4 @@ class Chord(object):
         :param other: other chord to compare
         :return: true if two chords are equal and false otherwise
         """
-        return self.note_list == other.note_list
+        return self.notes == other.notes

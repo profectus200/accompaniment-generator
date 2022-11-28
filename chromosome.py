@@ -12,39 +12,18 @@ class Chromosome(object):
 
     :argument size: the size of the chromosome
     :argument genes: the genes in the chromosome
-    :argument rating: the rating of the chromosome
+    :argument fitness: the fitness of the chromosome
     """
 
-    def __init__(self, size):
+    def __init__(self, size, max_note=120):
         """
         Standard constructor.
 
         :param size: size of the chromosome
         """
+        self.fitness = 0
         self.size = size
-        self.genes = [None] * size
-        self.rating = 0
-        self.generate_random_genes()
-
-    def generate_random_genes(self, max_note=120):
-        """
-        Generates random genes for the chromosome.
-
-        :return: None
-        """
-        for i in range(self.size):
-            rand_note = random.randint(0, max_note)
-            rand_chord = Chord(rand_note, random.choice(globals.CHORDS_LIST))
-            self.genes[i] = rand_chord
-
-    def __eq__(self, other):
-        """
-        Checks weather two chromosomes are equal.
-
-        :param other: other chromosome to compare
-        :return: true if two chromosomes are equal and false otherwise
-        """
-        return self.rating == other.rating
+        self.genes = [Chord(random.randint(0, max_note), random.choice(globals.CHORDS_LIST)) for _ in range(size)]
 
     def __lt__(self, other):
         """
@@ -53,4 +32,13 @@ class Chromosome(object):
         :param other: other chromosome to compare
         :return: true if current chromosome lesser then another one and false otherwise
         """
-        return self.rating < other.rating
+        return self.fitness < other.fitness
+
+    def __eq__(self, other):
+        """
+        Checks weather two chromosomes are equal.
+
+        :param other: other chromosome to compare
+        :return: true if two chromosomes are equal and false otherwise
+        """
+        return self.fitness == other.fitness
